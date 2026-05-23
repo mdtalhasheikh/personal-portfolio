@@ -1,3 +1,5 @@
+import { DigitalTwinChat } from "./components/DigitalTwinChat";
+
 const coreStack = [
   "Azure OpenAI",
   "LangGraph",
@@ -93,6 +95,7 @@ export default function Home() {
         <nav className="nav" aria-label="Primary navigation">
           <a href="#about">About</a>
           <a href="#journey">Journey</a>
+          <a href="#digital-twin">AI Twin</a>
           <a href="#portfolio">Portfolio</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -113,6 +116,9 @@ export default function Home() {
             <div className="hero-actions">
               <a className="button primary" href="#portfolio">
                 View Portfolio
+              </a>
+              <a className="button secondary" href="#digital-twin">
+                Ask Digital Twin
               </a>
               <a
                 className="button secondary"
@@ -202,6 +208,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <DigitalTwinChat />
 
       <section className="section-shell content-section portfolio" id="portfolio">
         <div className="section-heading">

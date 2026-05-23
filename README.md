@@ -10,3 +10,5 @@ npm run dev
 ```
 
 Open `http://localhost:3000` to view the site.
+
+The Digital Twin chat uses OpenRouter from the server-side API route. Set either `OPENROUTER_API_KEY` or `OPENAI_API_KEY` in `.env`.
