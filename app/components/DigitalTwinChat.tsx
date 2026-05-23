@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 
 type Message = {
+  id: string;
   role: "user" | "assistant";
   content: string;
 };
@@ -13,18 +14,43 @@ const starterQuestions = [
   "What roles would Talah be strongest for?",
 ];
 
+const initialMessage: Message = {
+  id: "initial-assistant-message",
+  role: "assistant",
+  content:
+    "Hi, I am Talah's Digital Twin. Ask me about his career journey, AI specialisation, enterprise architecture work, or project background.",
+};
+
+function createMessage(role: Message["role"], content: string): Message {
+  return {
+    id: crypto.randomUUID(),
+    role,
+    content,
+  };
+}
+
 export function DigitalTwinChat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi, I am Talah's Digital Twin. Ask me about his career journey, AI specialisation, enterprise architecture work, or project background.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const messageContainer = messagesRef.current;
+
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  function resetConversation() {
+    setMessages([initialMessage]);
+    setError("");
+    setInput("");
+    inputRef.current?.focus();
+  }
 
   async function sendMessage(question?: string) {
     const content = (question ?? input).trim();
@@ -33,7 +59,9 @@ export function DigitalTwinChat() {
       return;
     }
 
-    const nextMessages: Message[] = [...messages, { role: "user", content }];
+    const userMessage = createMessage("user", content);
+    const assistantMessage = createMessage("assistant", "");
+    const nextMessages: Message[] = [...messages, userMessage];
     setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
@@ -45,19 +73,79 @@ export function DigitalTwinChat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, stream: true }),
       });
 
-      const data = (await response.json()) as { reply?: string; error?: string };
-
-      if (!response.ok || !data.reply) {
-        throw new Error(data.error || "The Digital Twin could not respond.");
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error || "The Digital Twin could not respond.");
       }
 
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: data.reply as string },
-      ]);
+      const contentType = response.headers.get("content-type") ?? "";
+
+      if (!contentType.includes("text/event-stream")) {
+        const data = (await response.json()) as { reply?: string };
+        const reply = data.reply?.trim();
+
+        if (!reply) {
+          throw new Error("The Digital Twin returned an empty response.");
+        }
+
+        setMessages((current) => [...current, createMessage("assistant", reply)]);
+        return;
+      }
+
+      const reader = response.body?.getReader();
+
+      if (!reader) {
+        throw new Error("The Digital Twin returned an unreadable response.");
+      }
+
+      setMessages((current) => [...current, assistantMessage]);
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+
+        for (const event of events) {
+          const line = event
+            .split("\n")
+            .find((entry) => entry.trim().startsWith("data:"));
+
+          if (!line) {
+            continue;
+          }
+
+          const payload = line.replace(/^data:\s*/, "").trim();
+
+          if (payload === "[DONE]") {
+            continue;
+          }
+
+          const parsed = JSON.parse(payload) as { delta?: string };
+          const delta = parsed.delta ?? "";
+
+          if (delta) {
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === assistantMessage.id
+                  ? { ...message, content: message.content + delta }
+                  : message,
+              ),
+            );
+          }
+        }
+      }
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -75,11 +163,22 @@ export function DigitalTwinChat() {
     void sendMessage();
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      void sendMessage();
+    }
+  }
+
   return (
-    <section className="section-shell content-section twin-section" id="digital-twin">
+    <section
+      className="section-shell content-section twin-section"
+      id="digital-twin"
+      aria-labelledby="digital-twin-heading"
+    >
       <div className="section-heading twin-heading">
         <p className="eyebrow">Digital Twin</p>
-        <h2>Ask an AI version of Talah about his career.</h2>
+        <h2 id="digital-twin-heading">Ask an AI version of Talah about his career.</h2>
         <p>
           Powered by OpenRouter, this assistant is grounded in Talah&apos;s
           LinkedIn profile and answers questions about his experience,
@@ -93,7 +192,7 @@ export function DigitalTwinChat() {
             <span className="status-dot" aria-hidden="true" />
             <strong>Talah Digital Twin</strong>
           </div>
-          <span>openai/gpt-oss-120b</span>
+          <span>Private AI configuration</span>
         </div>
 
         <div className="starter-row" aria-label="Suggested questions">
@@ -109,9 +208,9 @@ export function DigitalTwinChat() {
           ))}
         </div>
 
-        <div className="messages" aria-live="polite">
-          {messages.map((message, index) => (
-            <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
+        <div className="messages" aria-live="polite" ref={messagesRef}>
+          {messages.map((message) => (
+            <div className={`message ${message.role}`} key={message.id}>
               <span>{message.role === "assistant" ? "Digital Twin" : "You"}</span>
               <p>{message.content}</p>
             </div>
@@ -127,10 +226,15 @@ export function DigitalTwinChat() {
         {error ? <p className="chat-error">{error}</p> : null}
 
         <form className="chat-form" onSubmit={handleSubmit}>
-          <input
+          <label className="sr-only" htmlFor="twin-input">
+            Ask the Digital Twin
+          </label>
+          <textarea
+            id="twin-input"
             ref={inputRef}
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Ask about AI architecture, banking platforms, leadership..."
             disabled={isLoading}
           />
@@ -138,6 +242,15 @@ export function DigitalTwinChat() {
             {isLoading ? "Sending" : "Ask"}
           </button>
         </form>
+        <div className="chat-footer">
+          <p>
+            Your messages are sent to OpenRouter to generate replies. Don&apos;t
+            share confidential information. See the <a href="/privacy">privacy notice</a>.
+          </p>
+          <button type="button" onClick={resetConversation} disabled={isLoading}>
+            New chat
+          </button>
+        </div>
       </div>
     </section>
   );
