@@ -15,16 +15,23 @@ const coreStack = [
 const highlights = [
   {
     value: "15+",
-    label: "years building enterprise systems",
+    label: "years turning complex platforms into reliable systems",
   },
   {
     value: "12+",
-    label: "years across banking and payments",
+    label: "years inside banking, payments, and regulated delivery",
   },
   {
     value: "3",
-    label: "AI focus areas: agents, RAG, resilient backends",
+    label: "frontiers: agentic AI, RAG, resilient AI backends",
   },
+];
+
+const signalStrip = [
+  "Enterprise GenAI",
+  "Regulated Platforms",
+  "API Modernisation",
+  "Production Architecture",
 ];
 
 const specialties = [
@@ -42,6 +49,27 @@ const specialties = [
     title: "Enterprise Integration",
     description:
       "Connecting modern LLM platforms to reliable APIs, event streams, microservices, observability, and security boundaries.",
+  },
+];
+
+const operatingModes = [
+  {
+    code: "01",
+    title: "Reasoning systems, not demos",
+    description:
+      "I design GenAI workflows with state, tools, memory, observability, and enterprise boundaries from the start.",
+  },
+  {
+    code: "02",
+    title: "Legacy strength into AI leverage",
+    description:
+      "Years of banking APIs, Java platforms, and payments engineering help me connect AI to systems that actually run businesses.",
+  },
+  {
+    code: "03",
+    title: "Delivery shape before code",
+    description:
+      "I align architecture, stakeholder intent, NFRs, integration contracts, and delivery risk before teams commit to build.",
   },
 ];
 
@@ -94,6 +122,12 @@ const portfolioLinks = [
   "Banking API modernisation case study",
 ];
 
+const engagementReasons = [
+  "You need GenAI architecture that can survive production scrutiny.",
+  "You are modernising banking, payments, or integration-heavy platforms.",
+  "You want an engineering leader who can bridge executives, architects, and delivery teams.",
+];
+
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -135,20 +169,26 @@ export default function Home() {
 
         <div className="hero-grid">
           <div className="hero-copy">
+            <div className="hero-signal-row" aria-label="Professional focus areas">
+              {signalStrip.map((signal) => (
+                <span key={signal}>{signal}</span>
+              ))}
+            </div>
             <p className="eyebrow">Greater Sydney Area · Data & AI Architect</p>
             <h1 id="hero-heading">Mohammad Talah Sheikh</h1>
             <p className="hero-title">
-              Solution Designer, Senior AI & Full-Stack Engineer, and Lead
-              Engineer building enterprise-scale GenAI and distributed systems.
+              I architect AI systems that can reason, integrate, and operate
+              safely inside real enterprise constraints.
             </p>
             <p className="hero-summary">
-              I bring deep Java, microservices, and banking platform experience
-              into modern AI systems, shaping GenAI solutions that are secure,
-              observable, resilient, and ready for production.
+              My edge is the uncommon overlap of GenAI architecture, full-stack
+              engineering, and 12+ years in banking and payments platforms. I
+              help teams move from AI ambition to production systems with
+              clear design, measurable value, and delivery discipline.
             </p>
             <div className="hero-actions">
-              <a className="button primary" href="#portfolio">
-                View Portfolio
+              <a className="button primary" href="#contact">
+                Start a conversation
               </a>
               <a className="button secondary" href="#digital-twin">
                 Ask Digital Twin
@@ -165,10 +205,23 @@ export default function Home() {
           </div>
 
           <aside className="profile-card" aria-label="Profile summary">
-            <div className="avatar" aria-hidden="true">
-              MTS
+            <div className="profile-card-header">
+              <p className="card-kicker">Architecture Console</p>
+              <div className="avatar" aria-hidden="true">
+                MTS
+              </div>
             </div>
-            <p className="card-kicker">Core Stack</p>
+            <div className="system-map" aria-hidden="true">
+              <span className="node primary-node">AI</span>
+              <span className="node node-a">APIs</span>
+              <span className="node node-b">Data</span>
+              <span className="node node-c">Ops</span>
+              <span className="node node-d">Risk</span>
+            </div>
+            <p className="console-note">
+              Designing the bridge between AI reasoning and the resilient
+              enterprise systems that execute it.
+            </p>
             <div className="stack-list">
               {coreStack.map((item) => (
                 <span key={item}>{item}</span>
@@ -187,6 +240,22 @@ export default function Home() {
         ))}
       </section>
 
+      <section className="section-shell command-brief" aria-label="Operating brief">
+        <div>
+          <p className="eyebrow">Operating Brief</p>
+          <h2>What makes the work worth a conversation.</h2>
+        </div>
+        <div className="brief-grid">
+          {operatingModes.map((item) => (
+            <article className="brief-card" key={item.code}>
+              <span>{item.code}</span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section
         className="section-shell content-section"
         id="about"
@@ -194,7 +263,7 @@ export default function Home() {
       >
         <div className="section-heading">
           <p className="eyebrow">About Me</p>
-          <h2 id="about-heading">AI-first engineering grounded in enterprise delivery.</h2>
+          <h2 id="about-heading">AI-first engineering with enterprise muscle memory.</h2>
         </div>
         <div className="about-grid">
           <p>
@@ -215,7 +284,7 @@ export default function Home() {
       <section className="section-shell content-section" aria-labelledby="specialisation-heading">
         <div className="section-heading">
           <p className="eyebrow">Specialisation</p>
-          <h2 id="specialisation-heading">Where I create leverage.</h2>
+          <h2 id="specialisation-heading">Where the profile becomes useful.</h2>
         </div>
         <div className="specialty-grid">
           {specialties.map((item) => (
@@ -234,7 +303,7 @@ export default function Home() {
       >
         <div className="section-heading">
           <p className="eyebrow">Career Journey</p>
-          <h2 id="journey-heading">From Java lead to AI solutions architect.</h2>
+          <h2 id="journey-heading">Built in delivery. Reoriented for AI.</h2>
         </div>
         <div className="timeline">
           {journey.map((item) => (
@@ -259,7 +328,7 @@ export default function Home() {
       >
         <div className="section-heading">
           <p className="eyebrow">Portfolio</p>
-          <h2 id="portfolio-heading">Future showcase links.</h2>
+          <h2 id="portfolio-heading">Selected architecture stories in progress.</h2>
         </div>
         <div className="portfolio-grid">
           {portfolioLinks.map((item) => (
@@ -282,11 +351,16 @@ export default function Home() {
       >
         <div>
           <p className="eyebrow">Let’s Build</p>
-          <h2 id="contact-heading">Enterprise AI systems that move beyond chat.</h2>
+          <h2 id="contact-heading">If the problem has scale, risk, and ambiguity, let’s talk.</h2>
           <p>
             Available for AI architecture, solution design, full-stack
             engineering leadership, and production GenAI strategy.
           </p>
+          <ul className="contact-reasons">
+            {engagementReasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
         </div>
         <div className="contact-actions">
           <a
